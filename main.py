@@ -69,6 +69,12 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     target = out_dir / "entry.png"
     target.write_bytes(blob)
+    # Write-verify: re-read what landed and confirm it is the same image.
+    # A partial or interrupted write must never pass as a good delivery.
+    landed = target.read_bytes()
+    if hashlib.sha256(landed).hexdigest() != hashlib.sha256(blob).hexdigest():
+        return die("wrote %s but the bytes on disk do not match entry.png"
+                   % target)
     digest = hashlib.sha256(blob).hexdigest()
     print("wrote %d bytes to %s sha256 %s" % (len(blob), target, digest))
     return 0
